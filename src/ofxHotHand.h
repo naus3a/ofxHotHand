@@ -12,15 +12,17 @@
 
 class ofxHotHand : public ofxMidiListener{
 public:
+    
     class AxisFusion{
     public:
         inline AxisFusion(){
             thr = 0.1;
+            lpfB = 0.55;
             reset();
         }
         
         inline void reset(){
-            accHistory.setSize(1000);
+            accHistory.setSize(100);
             bEnoughSamples = false;
             curNSamples = 0;
             avg = 0;
@@ -31,12 +33,16 @@ public:
             accHistory.setValue(s);
             accHistory.posUp();
             
+        }
+        
+        inline void calc(){
             calcAvg();
-            calcDeviation(s);
+            calcDeviation(accHistory.getValue());
             checkThreshold();
         }
         
         inline void setThreshold(float _thr){thr=_thr;}
+        inline void setLowPassBeta(float _b){lpfB=_b;}
         
         inline float getAverage(){return avg;}
         inline float getDeviation(){return dev;}
@@ -48,13 +54,15 @@ public:
         inline void checkThreshold(){
             bool nowBelow = (dev<=thr);
             if(!nowBelow && bBelow){
-                cout<<"CIPPA "<<ofGetElapsedTimef()<<endl;
+                ofNotifyEvent(evHigh);
             }
             bBelow = nowBelow;
         }
         
         inline void calcDeviation(float _s){
-            dev = _s-avg;
+            float rawDev = _s-avg;
+            //lowPass
+            dev = dev - (lpfB*(dev-rawDev));
         }
         
         inline void calcAvg(){
@@ -86,7 +94,9 @@ public:
             avg/=accHistory.getSize();
         }
         
+        //FloatBuffer accHistory;
         ofxCircularBuffer<float> accHistory;
+        float lpfB;
         float avg;
         float dev;
         float thr;

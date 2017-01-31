@@ -92,6 +92,9 @@ bool ofxHotHand::setup(){
 
 void ofxHotHand::update(){
     if(bBPM){
+        if(bpmMode==ofxHotHand::BPM_AXIS_FUSION){
+            aFusion.calc();
+        }
         bpmTapper.update();
     }
 }
@@ -144,6 +147,7 @@ void ofxHotHand::checkTapping(ofxMidiMessage &msg){
 void ofxHotHand::onHigher(){
     //tap();
     //cout<<"HIGH"<<endl;
+    tap();
 }
 
 void ofxHotHand::onLower(){
